@@ -6,3 +6,43 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id            String        @id @default(cuid())
+  email         String        @unique
+  createdAt     DateTime      @default(now())
+  categories    Category[]
+  transactions  Transaction[]
+}
+
+model Category {
+  id            String        @id @default(cuid())
+  name          String
+  type          CategoryType
+  user          User          @relation(fields: [userId], references: [id])
+  userId        String
+  transactions  Transaction[]
+}
+
+model Transaction {
+  id            String        @id @default(cuid())
+  type          TransactionType
+  amount        Decimal       @db.Decimal(14,2)
+  description   String?
+  date          DateTime
+  createdAt     DateTime      @default(now())
+  category      Category      @relation(fields: [categoryId], references: [id])
+  categoryId    String
+  user          User          @relation(fields: [userId], references: [id])
+  userId        String
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum CategoryType {
+  INCOME
+  EXPENSE
+}

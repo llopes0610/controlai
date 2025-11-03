@@ -10,6 +10,9 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,css,md,json}\"",
     "prepare": "husky install"
   },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
   "lint-staged": {
     "**/*.{ts,tsx,js,css,md,json}": [
       "prettier --write",
@@ -47,6 +50,7 @@
     "prettier": "^3.6.2",
     "prisma": "^6.18.0",
     "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }

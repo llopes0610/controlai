@@ -1,3 +1,4 @@
+import 'dotenv/config'; // ✅ carrega .env antes
 import { defineConfig, env } from 'prisma/config';
 
 export default defineConfig({
