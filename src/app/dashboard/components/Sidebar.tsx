@@ -8,6 +8,7 @@ export default function Sidebar() {
                 <a className="block text-gray-700 hover:text-green-600" href="/dashboard/categories">📁 Categorias</a>
                 <a className="block text-gray-700 hover:text-green-600" href="/dashboard/transactions">💸 Transações</a>
                 <a className="block text-gray-700 hover:text-green-600" href="/dashboard/budgets">💰 Orçamento</a>
+                <a className="block text-gray-700 hover:text-green-600" href="/dashboard/goals">🐷 Metas</a>
                 <a className="block text-gray-700 hover:text-green-600" href="/dashboard/reports">📄 Relatórios</a>
 
             </nav>

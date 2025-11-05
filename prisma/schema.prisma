@@ -15,6 +15,7 @@ model User {
   categories    Category[]
   transactions  Transaction[]
   budgets       Budget[]
+  savingGoals   SavingGoal[]     // ✅ relação com metas financeiras
 }
 
 model Category {
@@ -56,6 +57,19 @@ model Budget {
   @@unique([userId, categoryId, month, year])
 }
 
+model SavingGoal {
+  id          String     @id @default(cuid())
+  user        User       @relation(fields: [userId], references: [id])
+  userId      String
+  name        String
+  description String?
+  target      Decimal    @db.Decimal(14,2)
+  current     Decimal    @db.Decimal(14,2) @default(0)
+  deadline    DateTime?
+  status      GoalStatus @default(ACTIVE)
+  createdAt   DateTime   @default(now())
+}
+
 enum TransactionType {
   INCOME
   EXPENSE
@@ -64,4 +78,10 @@ enum TransactionType {
 enum CategoryType {
   INCOME
   EXPENSE
+}
+
+enum GoalStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
 }
