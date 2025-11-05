@@ -14,8 +14,8 @@ model User {
   createdAt     DateTime      @default(now())
   categories    Category[]
   transactions  Transaction[]
+  budgets       Budget[]
 }
-
 
 model Category {
   id            String        @id @default(cuid())
@@ -24,6 +24,7 @@ model Category {
   user          User          @relation(fields: [userId], references: [id])
   userId        String
   transactions  Transaction[]
+  budgets       Budget[]
 
   @@unique([id, userId])
 }
@@ -39,6 +40,20 @@ model Transaction {
   categoryId    String
   user          User          @relation(fields: [userId], references: [id])
   userId        String
+}
+
+model Budget {
+  id          String   @id @default(cuid())
+  userId      String
+  categoryId  String
+  limit       Decimal   @db.Decimal(14,2)
+  month       Int
+  year        Int
+
+  user        User      @relation(fields: [userId], references: [id])
+  category    Category  @relation(fields: [categoryId], references: [id])
+
+  @@unique([userId, categoryId, month, year])
 }
 
 enum TransactionType {
