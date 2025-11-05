@@ -1,28 +1,27 @@
-export default function Sidebar() {
+"use client";
+
+export default function Sidebar({ onClose }: { onClose?: () => void }) {
     return (
-        <aside className="w-64 bg-white shadow-md p-6 space-y-4 border-r h-screen flex flex-col">
-            <h2 className="text-xl font-bold text-green-600">Controlaí</h2>
+        <nav className="space-y-4">
+            <h2 className="text-xl font-bold text-green-600 mb-4">Controlaí</h2>
 
-            <nav className="space-y-2 flex-1">
-                <a className="block text-gray-700 hover:text-green-600" href="/dashboard">📊 Dashboard</a>
-                <a className="block text-gray-700 hover:text-green-600" href="/dashboard/categories">📁 Categorias</a>
-                <a className="block text-gray-700 hover:text-green-600" href="/dashboard/transactions">💸 Transações</a>
-                <a className="block text-gray-700 hover:text-green-600" href="/dashboard/budgets">💰 Orçamento</a>
-                <a className="block text-gray-700 hover:text-green-600" href="/dashboard/goals">🐷 Metas</a>
-                <a className="block text-gray-700 hover:text-green-600" href="/dashboard/reports">📄 Relatórios</a>
-
-            </nav>
+            <a href="/dashboard" onClick={onClose} className="block hover:text-green-600">📊 Dashboard</a>
+            <a href="/dashboard/categories" onClick={onClose} className="block hover:text-green-600">📁 Categorias</a>
+            <a href="/dashboard/fixed" onClick={onClose} className="block hover:text-green-600">🧾 Contas Fixas</a>
+            <a href="/dashboard/transactions" onClick={onClose} className="block hover:text-green-600">💸 Transações</a>
+            <a href="/dashboard/budgets" onClick={onClose} className="block hover:text-green-600">📉 Orçamentos</a>
+            <a href="/dashboard/goals" onClick={onClose} className="block hover:text-green-600">🐖 Metas</a>
+            <a href="/dashboard/reports" onClick={onClose} className="block hover:text-green-600">📄 Relatórios</a>
 
             <button
                 onClick={async () => {
                     await fetch("/api/auth/logout", { method: "POST" });
                     window.location.href = "/auth/login";
                 }}
-                className="mt-8 text-red-500 hover:underline"
+                className="mt-6 text-red-500 hover:underline"
             >
                 Sair
             </button>
-
-        </aside>
+        </nav>
     );
 }
