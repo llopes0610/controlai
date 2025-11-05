@@ -1,53 +1,121 @@
+export const dynamic = "force-dynamic";
+
 import prisma from "@/lib/prisma";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+// ==========================
+// GET  → listagem com filtros + paginação + período
+// ==========================
+export async function GET(req: Request) {
+    const { searchParams } = new URL(req.url);
+
+    const page = Number(searchParams.get("page")) || 1;
+    const limit = Number(searchParams.get("limit")) || 10;
+    const search = searchParams.get("search") || "";
+    const type = searchParams.get("type") || "";
+
+    const period = searchParams.get("period");
+    const from = searchParams.get("from");
+    const to = searchParams.get("to");
+
+    const skip = (page - 1) * limit;
+
     const supabase = await createServerSupabase();
     const {
         data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) return NextResponse.json([]);
+    if (!user) return NextResponse.json({ data: [], total: 0 });
 
     const dbUser = await prisma.user.findUnique({
         where: { authId: user.id },
     });
-    if (!dbUser) return NextResponse.json([]);
+
+    if (!dbUser) return NextResponse.json({ data: [], total: 0 });
+
+    const where: {
+        userId: string;
+        description?: { contains: string; mode: "insensitive" };
+        type?: string;
+        date?: { gte?: Date; lte?: Date };
+    } = { userId: dbUser.id };
+
+    if (search) {
+        where.description = { contains: search, mode: "insensitive" };
+    }
+
+    if (type) {
+        where.type = type.toUpperCase();
+    }
+
+    if (period === "7d") {
+        where.date = { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) };
+    }
+
+    if (period === "30d") {
+        where.date = { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) };
+    }
+
+    if (period === "month") {
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth(), 1);
+        where.date = { gte: start };
+    }
+
+    if (from && to) {
+        where.date = {
+            gte: new Date(from),
+            lte: new Date(to),
+        };
+    }
+
+    const total = await prisma.transaction.count({ where });
 
     const rows = await prisma.transaction.findMany({
-        where: { userId: dbUser.id },
+        where,
+        skip,
+        take: limit,
         orderBy: { date: "desc" },
         include: { category: true },
     });
 
-    // 🔁 Converte Prisma.Decimal -> number para JSON
     const transactions = rows.map((t) => ({
         ...t,
-        amount: (t.amount as unknown as Prisma.Decimal).toNumber(),
+        amount: Number(t.amount),
     }));
 
-    return NextResponse.json(transactions);
+    return NextResponse.json({
+        data: transactions,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit),
+    });
 }
 
+// ==========================
+// POST → criar transação
+// ==========================
 export async function POST(req: Request) {
-    const body = await req.json();
-    const { description, amount, type, categoryId, date } = body;
-
     const supabase = await createServerSupabase();
     const {
         data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const dbUser = await prisma.user.findUnique({
         where: { authId: user.id },
     });
-    if (!dbUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
+    if (!dbUser) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
 
-    // 🔢 normaliza amount (permite vírgula) e cria Decimal
+    const { description, amount, type, categoryId, date } = await req.json();
+
     const normalized = String(amount).replace(",", ".");
     const decimalAmount = new Prisma.Decimal(normalized);
 
@@ -55,7 +123,7 @@ export async function POST(req: Request) {
         data: {
             description: description ?? null,
             amount: decimalAmount,
-            type, // "INCOME" | "EXPENSE"
+            type,
             categoryId,
             date: date ? new Date(date) : new Date(),
             userId: dbUser.id,
@@ -65,10 +133,30 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
         ...newTx,
-        amount: (newTx.amount as unknown as Prisma.Decimal).toNumber(),
+        amount: Number(newTx.amount),
     });
 }
 
+// ==========================
+// PUT → atualizar transação (descrição/valor simples)
+// ==========================
+export async function PUT(req: Request) {
+    const { id, description, amount } = await req.json();
+
+    const tx = await prisma.transaction.update({
+        where: { id },
+        data: {
+            description,
+            amount: new Prisma.Decimal(String(amount).replace(",", ".")),
+        },
+    });
+
+    return NextResponse.json(tx);
+}
+
+// ==========================
+// DELETE → remover transação
+// ==========================
 export async function DELETE(req: Request) {
     const { id } = await req.json();
 
@@ -79,17 +167,10 @@ export async function DELETE(req: Request) {
 
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const dbUser = await prisma.user.findUnique({
-        where: { authId: user.id },
-    });
-    if (!dbUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
-
-    // 🔐 Apaga somente se pertencer ao usuário
     const tx = await prisma.transaction.findUnique({ where: { id } });
-    if (!tx || tx.userId !== dbUser.id) {
-        return NextResponse.json({ error: "Not found" }, { status: 404 });
-    }
+    if (!tx) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     await prisma.transaction.delete({ where: { id } });
+
     return NextResponse.json({ success: true });
 }

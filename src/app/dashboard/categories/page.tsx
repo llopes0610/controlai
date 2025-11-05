@@ -27,7 +27,7 @@ export default function CategoriesPage() {
         });
 
         setName("");
-        load();
+        void load();
     }
 
     async function remove(id: string) {
@@ -36,11 +36,13 @@ export default function CategoriesPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ id }),
         });
-        load();
+        void load();
     }
 
     useEffect(() => {
-        load();
+        (async () => {
+            await load();
+        })();
     }, []);
 
     return (
@@ -57,16 +59,14 @@ export default function CategoriesPage() {
 
                 <select
                     className="border p-2 rounded"
+                    value={type}
                     onChange={(e) => setType(e.target.value)}
                 >
                     <option value="INCOME">Receita</option>
                     <option value="EXPENSE">Despesa</option>
                 </select>
 
-                <button
-                    onClick={create}
-                    className="bg-green-600 text-white px-4 rounded"
-                >
+                <button onClick={create} className="bg-green-600 text-white px-4 rounded">
                     Adicionar
                 </button>
             </div>
@@ -86,7 +86,7 @@ export default function CategoriesPage() {
                             <td className="p-2">{cat.type}</td>
                             <td className="p-2 text-center">
                                 <button
-                                    onClick={() => remove(cat.id)}
+                                    onClick={() => void remove(cat.id)}
                                     className="text-red-500 hover:underline"
                                 >
                                     Excluir
