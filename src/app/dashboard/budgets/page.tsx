@@ -13,6 +13,9 @@ interface Budget {
     limit: number;
     month: number;
     year: number;
+    spent?: number;
+    percent?: number;
+    categoryId: string;
 }
 
 export default function BudgetsPage() {
@@ -118,26 +121,55 @@ export default function BudgetsPage() {
                         <th className="p-2 text-left">Limite (R$)</th>
                         <th className="p-2 text-left">Mês</th>
                         <th className="p-2 text-left">Ano</th>
+                        <th className="p-2 text-left">Progresso</th>
                         <th className="p-2">Ações</th>
                     </tr>
                 </thead>
+
                 <tbody>
-                    {budgets.map((b) => (
-                        <tr key={b.id} className="border-b">
-                            <td className="p-2">{b.category?.name}</td>
-                            <td className="p-2">{b.limit.toFixed(2)}</td>
-                            <td className="p-2">{b.month}</td>
-                            <td className="p-2">{b.year}</td>
-                            <td className="p-2 text-center">
-                                <button
-                                    onClick={() => remove(b.id)}
-                                    className="text-red-500 hover:underline"
-                                >
-                                    Remover
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
+                    {budgets.map((b) => {
+                        const spent = b.spent ?? 0;
+                        const percent = Math.min((spent / b.limit) * 100, 100);
+
+                        let color = "bg-green-500";
+                        if (percent >= 80 && percent < 100) color = "bg-yellow-500";
+                        if (percent >= 100) color = "bg-red-600";
+
+                        return (
+                            <tr key={b.id} className="border-b">
+                                <td className="p-2">{b.category?.name}</td>
+                                <td className="p-2">R$ {b.limit.toFixed(2)}</td>
+                                <td className="p-2">{b.month}</td>
+                                <td className="p-2">{b.year}</td>
+
+                                <td className="p-2">
+                                    <div className="w-full bg-gray-200 rounded h-3">
+                                        <div
+                                            className={`${color} h-3 rounded`}
+                                            style={{ width: `${percent}%` }}
+                                        ></div>
+                                    </div>
+
+                                    <div className="text-xs mt-1 text-gray-700">
+                                        ✅ {percent.toFixed(0)}% consumido
+                                    </div>
+
+                                    <div className="text-xs text-gray-700">
+                                        💰 Restante: R$ {(b.limit - spent).toFixed(2)}
+                                    </div>
+                                </td>
+
+                                <td className="p-2 text-center">
+                                    <button
+                                        onClick={() => remove(b.id)}
+                                        className="text-red-500 hover:underline"
+                                    >
+                                        Remover
+                                    </button>
+                                </td>
+                            </tr>
+                        );
+                    })}
                 </tbody>
             </table>
         </div>

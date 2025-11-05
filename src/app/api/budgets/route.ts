@@ -34,13 +34,33 @@ export async function GET(req: Request) {
         include: { category: true },
     });
 
-    // ✅ CONVERSÃO DO DECIMAL PARA NUMBER
-    const serialized = budgets.map(b => ({
-        ...b,
-        limit: Number(b.limit),
-    }));
+    // === gastos por categoria no mês ===
+    const start = new Date(year, month - 1, 1);
+    const end = new Date(year, month, 0);
 
-    return NextResponse.json(serialized);
+    const grouped = await prisma.transaction.groupBy({
+        by: ["categoryId"],
+        _sum: { amount: true },
+        where: {
+            userId: dbUser.id,
+            type: "EXPENSE",
+            date: { gte: start, lte: end },
+        },
+    });
+
+    const spentMap: Record<string, number> = {};
+    grouped.forEach(g => {
+        spentMap[g.categoryId] = Number(g._sum.amount || 0);
+    });
+
+    return NextResponse.json(
+        budgets.map((b) => ({
+            ...b,
+            limit: Number(b.limit),
+            spent: spentMap[b.categoryId] || 0,
+            percent: ((spentMap[b.categoryId] || 0) / Number(b.limit)) * 100,
+        }))
+    );
 }
 
 
@@ -82,7 +102,6 @@ export async function POST(req: Request) {
         }
     });
 
-    // ✅ também garantir conversão aqui
     return NextResponse.json({
         ...budget,
         limit: Number(budget.limit),
