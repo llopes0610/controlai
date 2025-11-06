@@ -1,0 +1,25 @@
+/* Glass / Modern UI Enhancements */
+
+.card-glass {
+    @apply bg-white/60 backdrop-blur-md shadow-lg rounded-xl border border-white/20;
+}
+
+.stat-kpi {
+    @apply px-6 py-4 rounded-xl shadow-sm bg-white hover:shadow-md transition-all;
+}
+
+.progress-pill {
+    @apply h-2 w-full rounded-full bg-gray-200 overflow-hidden;
+}
+
+.progress-pill>span {
+    @apply h-full block bg-green-500 rounded-full transition-all duration-500;
+}
+
+.table-row-hover {
+    @apply hover:bg-gray-50 cursor-pointer transition-all;
+}
+
+.badge-delta {
+    @apply px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-600;
+}

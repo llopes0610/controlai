@@ -1,15 +1,22 @@
-import { PrismaClient } from "@prisma/client";
+export const dynamic = "force-dynamic";
+
+import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-const prisma = new PrismaClient();
+interface SyncBody {
+    email: string;
+    authId: string;
+}
 
 export async function POST(req: Request) {
-    const { email, authId } = await req.json();
+    const { email, authId }: SyncBody = await req.json();
 
+    // busca user
     let user = await prisma.user.findUnique({
         where: { authId },
     });
 
+    // cria user se não existir
     if (!user) {
         user = await prisma.user.create({
             data: {
@@ -17,20 +24,39 @@ export async function POST(req: Request) {
                 authId,
             },
         });
+    }
 
-        await prisma.category.createMany({
-            data: [
-                { name: "Alimentação", type: "EXPENSE", userId: user.id },
-                { name: "Transporte", type: "EXPENSE", userId: user.id },
-                { name: "Moradia", type: "EXPENSE", userId: user.id },
-                { name: "Saúde", type: "EXPENSE", userId: user.id },
-                { name: "Lazer", type: "EXPENSE", userId: user.id },
-                { name: "Educação", type: "EXPENSE", userId: user.id },
-                { name: "Salário", type: "INCOME", userId: user.id },
-                { name: "Outros", type: "EXPENSE", userId: user.id },
-            ],
+    const defaults = [
+        { name: "Alimentação", type: "EXPENSE" },
+        { name: "Transporte", type: "EXPENSE" },
+        { name: "Moradia", type: "EXPENSE" },
+        { name: "Saúde", type: "EXPENSE" },
+        { name: "Lazer", type: "EXPENSE" },
+        { name: "Educação", type: "EXPENSE" },
+        { name: "Salário", type: "INCOME" },
+        { name: "Outros", type: "EXPENSE" },
+    ];
+
+    // garante prefixo único baseado em (name, userId)
+    for (const cat of defaults) {
+        await prisma.category.upsert({
+            where: {
+                name_userId: {
+                    name: cat.name,
+                    userId: user.id,
+                },
+            },
+            update: {},
+            create: {
+                name: cat.name,
+                type: cat.type as any,
+                userId: user.id,
+            },
         });
     }
 
-    return NextResponse.json({ user });
+    return NextResponse.json({
+        user,
+        seeded: true,
+    });
 }

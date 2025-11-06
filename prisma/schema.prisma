@@ -28,7 +28,7 @@ model Category {
   transactions  Transaction[]
   budgets       Budget[]
 
-  @@unique([id, userId])
+  @@unique([name, userId])
 }
 
 model Transaction {

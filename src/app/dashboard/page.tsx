@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import AlmostBurstingCard from "./components/AlmostBurstingCard";
-import ExpensesPieChart from "./components/ExpensesPieChart";
-import GoalsProgressCard from "./components/GoalsProgressCard";
-import IncomeExpenseBarChart from "./components/IncomeExpenseBarChart";
-import KpiCard from "./components/KpiCard";
+import AlmostBurstingCard from "./_components/AlmostBurstingCard";
+import ExpensesPieChart from "./_components/ExpensesPieChart";
+import GoalsProgressCard from "./_components/GoalsProgressCard";
+import IncomeExpenseBarChart from "./_components/IncomeExpenseBarChart";
+import KpiCard from "./_components/KpiCard";
 
 interface Transaction {
     id: string;
@@ -105,19 +105,43 @@ export default function Dashboard() {
     }, [transactions]);
 
     return (
-        <div className="space-y-6 w-full">
+        <div className="animate-fade-in space-y-6 w-full">
 
             {/* KPIs */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <KpiCard title="💰 Receitas" value={`R$ ${totalIncome.toFixed(2)}`} />
                 <KpiCard title="🔥 Despesas" value={`R$ ${totalExpense.toFixed(2)}`} />
                 <KpiCard title="🏦 Saldo" value={`R$ ${balance.toFixed(2)}`} />
+                <KpiCard
+                    title="📈 Tendência"
+                    value={balance > 0 ? "Positiva" : balance === 0 ? "Estável" : "Negativa"}
+                />
             </div>
 
-            {/* Alert cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Alerts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <AlmostBurstingCard data={almost} />
                 <GoalsProgressCard goals={goals} />
+            </div>
+
+            {/* Summary Blocks */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="animate-fade-in p-6 bg-white rounded-xl shadow-sm">
+                    <h3 className="font-semibold mb-3">💳 Top gastos do período</h3>
+                    <p className="text-gray-600 text-sm">Lazer, Contas Fixas</p>
+                </div>
+
+                <div className="animate-fade-in p-6 bg-white rounded-xl shadow-sm">
+                    <h3 className="font-semibold mb-3">⚠️ Anomalias detectadas</h3>
+                    <p className="text-gray-600 text-sm">Nenhuma encontrada.</p>
+                </div>
+
+                <div className="animate-fade-in p-6 bg-white rounded-xl shadow-sm">
+                    <h3 className="font-semibold mb-3">🤖 Sugestão financeira</h3>
+                    <p className="text-gray-600 text-sm">
+                        Ótimo mês para investir mais 5% em metas pessoais.
+                    </p>
+                </div>
             </div>
 
             {/* Charts */}
@@ -125,7 +149,7 @@ export default function Dashboard() {
                 <ExpensesPieChart data={expenseSummary} />
                 <IncomeExpenseBarChart data={monthlyData} />
             </div>
-
         </div>
     );
+
 }

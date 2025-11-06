@@ -1,37 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import Sidebar from "./components/Sidebar";
+import Sidebar from "./_components/Sidebar";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({ children }) {
     const [open, setOpen] = useState(false);
 
     return (
-        <div className="flex min-h-screen bg-gray-100 text-gray-900">
+        <div className="flex min-h-screen bg-gray-50">
 
-            {/* Sidebar Desktop */}
-            <aside className="hidden md:block w-64 bg-white border-r p-6 shadow-sm">
-                <Sidebar />
-            </aside>
+            {/* ✅ Sidebar (desktop e mobile controlado no componente) */}
+            <Sidebar open={open} onClose={() => setOpen(false)} />
 
-            {/* Sidebar Mobile Drawer */}
-            {open && (
-                <aside className="fixed inset-0 bg-black/40 z-40">
-                    <div className="absolute left-0 top-0 w-64 h-full bg-white p-6 shadow-lg">
-                        <Sidebar onClose={() => setOpen(false)} />
-                    </div>
-                </aside>
-            )}
-
-            {/* Botão Mobile */}
+            {/* ✅ Botão Hamburguer MOBILE */}
             <button
                 onClick={() => setOpen(true)}
-                className="md:hidden fixed top-4 left-4 z-50 bg-green-600 text-white p-2 rounded"
+                className="md:hidden fixed top-4 left-4 z-50 bg-green-600 text-white p-2 rounded shadow"
             >
                 ☰
             </button>
 
-            <main className="flex-1 p-4 md:p-10">
+            {/* ✅ Conteúdo empurrado para o lado no desktop */}
+            <main className="flex-1 p-4 md:p-8 ml-0 md:ml-64">
                 {children}
             </main>
         </div>
